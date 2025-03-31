@@ -6,7 +6,7 @@ __pycache__/
 # C extensions
 *.so
 files/
- api_log_file.json
+api_log_file.json
 # Distribution / packaging
 .Python
 build/
