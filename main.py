@@ -6,17 +6,24 @@ from rich.text import Text
 import os
 import time
 
+# from text_to_speech.tts import speak
 from ai_processing.interview_ai import prompt
+from gtts import gTTS
+import pyttsx3
 
 # CLI app setup
 app = typer.Typer()
 console = Console()
 
+# Initialize python pyttsx3 engine
+engine = pyttsx3.init()
+
+
 
 def clear_screen():
     loading_effect("Starting Application. Please wait..")
     print("Loading Application.. Almost there!..")
-    time.sleep(4)
+    # time.sleep(4)
     os.system("cls")
     show_title()
 
@@ -54,9 +61,9 @@ def start():
 
     if choice == "1":
         loading_effect("Preparing interview questions...")
-        time.sleep(3)
+        # time.sleep(3)
         typer.echo("🚀 Starting Interview...")
-        time.sleep(3)
+        # time.sleep(3)
         start_interview()
         # Call interview function
     elif choice == "2":
@@ -78,7 +85,25 @@ def start_interview():
     role = str(input("[AI]: What role would you like to be interviewd for? (e.g Fullstack Developer, Product Designer):\n[You]: "))
     keywords = str(input("[AI]: Enter Job Description Keywords (e.g Python, Figma or None):\n[You]: "))
     job_desc = str(input("[AI]: Paste or type Job Description here:\n[You]: "))
-    prompt(role, keywords, job_desc)
+    data = prompt(role, keywords, job_desc)
+    print(data)
+
+
+    for index, item in enumerate(data):
+        print("got here")
+        print(f"[AI]: {str(index)}. {item['question']}:\n")
+
+        # tts = gTTS(data["question"], lang="en")
+        # # Save to a temporary file
+        # tts.save("files/temp.mp3")
+
+        # Play the audio
+        engine.say(item['question'])
+        print("Got to pyttsx3 engine")
+        engine.runAndWait()
+
+        # get user responses
+        user_response = str(input("[You]: "))
 
 if __name__ == "__main__":
     app()
