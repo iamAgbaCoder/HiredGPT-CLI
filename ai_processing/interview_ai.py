@@ -4,8 +4,12 @@ from config import Client
 import re
 from decouple import config
 import json
+import typer
+import os
 
 from .utils import parse_interview_data
+
+from requests.exceptions import ConnectionError
 
 # Function to extract questions
 def extract_questions(text):
@@ -81,7 +85,7 @@ def prompt(role, keywords, job_desc):
     import requests
 
     # Replace with your OpenRouter API key
-    # API_KEY = 'your_openrouter_api_key'
+    API_KEY = 'your_openrouter_api_key'
     API_URL = 'https://openrouter.ai/api/v1/chat/completions'
 
     # Define the headers for the API request
@@ -96,26 +100,59 @@ def prompt(role, keywords, job_desc):
         "messages": [{"role": "user", "content": INTERVIEW_PROMPT}]
     }
 
-    # Send the POST request to the DeepSeek API
-    response = requests.post(API_URL, json=data, headers=headers)
 
-    # Check if the request was successful
-    if response.status_code == 200:
-        body = response.json()
-        print(body)
-        with open("files/api_response.json", "w") as file:
-            # file.write(str(body))
-            # file.close()
-            json.dump(body, file, indent=4)
+    # try:
+    #     # Send the POST request to the DeepSeek API
+    #     response = requests.post(API_URL, json=data, headers=headers)
+    #     # Check if the request was successful
+    #     if response.status_code == 200:
+    #         body = response.json()
+    #         with open("files/api_response.json", "w") as file:
+    #             # file.write(str(body))
+    #             # file.close()
+    #             json.dump(body, file, indent=4)
+    #
+    #         db = body["choices"][0]["message"]["content"]
+    #         parsed_data = parse_interview_data(db)
+    #         return parsed_data
+    #
+    #     else:
+    #         print("Failed to fetch data from API. Status Code:", response.status_code)
+    #
+    # except ConnectionError as e:
+    #     typer.echo(f"[Connection Error]: Please try connecting your device to the Internet and try again.")
+    #     exit()
+    # except requests.exceptions.HTTPError as e:
+    #     typer.echo(f"[HTTP error]: {e}")
+    #     from main import loading_effect
+    #     loading_effect("Trying again.. Please wait")
+    #     os.system("cls")
+    #     from main import start_interview
+    #     start_interview()
+    #
+    # except Exception as e:
+    #     type.echo(f"[Unexpected Error]: {e}")
 
-        db = body["choices"][0]["message"]["content"]
-        parsed_data = parse_interview_data(db)
-        print("Parsed Data Below:")
-        print(parsed_data)
-        return parsed_data
+    with open("files/api_response.json", "rb") as file:
+        try:
+            results = json.load(file)
+            # print(results, type(results))
+            # print(results["choices"][0]["message"]["content"])
+            parsed_data = parse_interview_data(results["choices"][0]["message"]["content"])  # Only call this if JSON decoding is successful
+            return parsed_data
+        except json.JSONDecodeError as e:
+            print(f"JSON decoding error: {e}")
 
-    else:
-        print("Failed to fetch data from API. Status Code:", response.status_code)
+
+    # with open("files/api_response.json", "rb") as file:
+    #     try:
+    #         results = json.load(file)
+    #         # print(results, type(results))
+    #         # print(results["choices"][0]["message"]["content"])
+    #         parsed_data = parse_interview_data(results["choices"][0]["message"]["content"])  # Only call this if JSON decoding is successful
+    #         return parsed_data
+    #     except json.JSONDecodeError as e:
+    #         print(f"JSON decoding error: {e}")
     #     try:
     #     completion = Client.chat.completions.create(
     #         model="gpt-4o",
